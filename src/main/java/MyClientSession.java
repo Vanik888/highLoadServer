@@ -148,7 +148,7 @@ public class MyClientSession implements Runnable {
             contentType = "image/jpeg";
         } else
         if(end.equals("jpg")){
-            contentType = "image/jpg";
+            contentType = "image/jpeg";
         } else
         if(end.equals("js")){
             contentType = "text/javascript";
