@@ -92,19 +92,21 @@ public class MyClientSession implements Runnable {
     private String findFilePath(String header) {
 
         int from = header.indexOf(" ")+1;
-        int to = header.indexOf("HTTP/1.1\n", from)-1;
+        int to = header.indexOf("HTTP/1.", from)-1;
         String url = header.substring(from, to);
         System.out.println("url = "+ url);
         System.out.println("char = " + url.charAt(url.length() - 1));
         if (url.indexOf('?') != -1) {
             url = url.substring(0,url.indexOf('?'));
         }
-
+        while (url.indexOf("%20") != -1) {
+//            url = url.substring(url.indexOf("%20"), url.indexOf())
+            url = url.replace("%20"," ");
+        }
         boolean checked = false;
         while (!checked) {
             if((from = url.indexOf("../") )!=-1) {
                 url = url.substring(0,from)+url.substring(from+3,url.length());
-
             } else checked = true;
         }
 
@@ -148,6 +150,7 @@ public class MyClientSession implements Runnable {
         buffer.append("Content-Type: " + contentType +"\n");
         buffer.append("Connection: close\n");
         buffer.append("\n");
+
         return buffer.toString();
     }
     private String getContentType(String url) {
