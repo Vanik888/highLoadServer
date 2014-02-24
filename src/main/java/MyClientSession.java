@@ -50,7 +50,6 @@ public class MyClientSession implements Runnable {
                     while((count = inputStream.read(bytes)) != -1) {
                         os.write(bytes);
                     }
-//                    inputStream.close();
 
                 } else if (method.equals("GET") && status == 404) {
 
@@ -91,12 +90,38 @@ public class MyClientSession implements Runnable {
         return builder.toString();
     }
     private String findFilePath(String header) {
+
         int from = header.indexOf(" ")+1;
-        int to = header.indexOf(" ", from);
-        String url = header.substring(from,to);
+        int to = header.indexOf("HTTP/1.1\n", from)-1;
+        String url = header.substring(from, to);
+        System.out.println("url = "+ url);
         System.out.println("char = " + url.charAt(url.length() - 1));
+        if (url.indexOf('?') != -1) {
+            url = url.substring(0,url.indexOf('?'));
+        }
+
+        boolean checked = false;
+        while (!checked) {
+            if((from = url.indexOf("../") )!=-1) {
+                url = url.substring(0,from)+url.substring(from+3,url.length());
+
+            } else checked = true;
+        }
+
         if (url.charAt(url.length()-1) == '/') {
             url=url+"index.html";
+        } else {
+            from = url.length()-1;
+            int i  = from;
+            boolean poinIsFound = false;
+            while (i>=0 && !poinIsFound) {
+                if (url.charAt(i) == '.'){
+                    poinIsFound = true;
+                }
+                i--;
+            }
+            if (!poinIsFound)
+                url = url+"/index.html";
         }
         System.out.println("FIle url"+url);
         return url;
@@ -126,8 +151,6 @@ public class MyClientSession implements Runnable {
         return buffer.toString();
     }
     private String getContentType(String url) {
-//        int from = url.indexOf(".")+1;
-//        int to = url.length(  
         int len = url.length()-1;
         int i = len;
         String ct = null;
@@ -140,11 +163,6 @@ public class MyClientSession implements Runnable {
             i--;
         }
         System.out.println("url contentType = " + ct);
-
-//        System.out.println(url.substring(from, to));
-//        String urlEnd = url.substring(from, to);
-//        if ()
-//        return getFullContentType(url.substring(from, to));
         return getFullContentType(ct);
     }
     private String getFullContentType(String end) {
