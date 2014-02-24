@@ -94,7 +94,7 @@ public class MyClientSession implements Runnable {
         int from = header.indexOf(" ")+1;
         int to = header.indexOf(" ", from);
         String url = header.substring(from,to);
-        System.out.println("char = " + url.charAt(url.length()-1));
+        System.out.println("char = " + url.charAt(url.length() - 1));
         if (url.charAt(url.length()-1) == '/') {
             url=url+"index.html";
         }
@@ -126,12 +126,26 @@ public class MyClientSession implements Runnable {
         return buffer.toString();
     }
     private String getContentType(String url) {
-        int from = url.indexOf(".")+1;
-        int to = url.length();
-        System.out.println(url.substring(from, to));
+//        int from = url.indexOf(".")+1;
+//        int to = url.length(  
+        int len = url.length()-1;
+        int i = len;
+        String ct = null;
+        boolean ctFinded = false;
+        while (i >= 0 && !ctFinded) {
+            if (url.charAt(i) == '.') {
+                ctFinded = true;
+                ct = url.substring(i+1,len+1);
+            }
+            i--;
+        }
+        System.out.println("url contentType = " + ct);
+
+//        System.out.println(url.substring(from, to));
 //        String urlEnd = url.substring(from, to);
 //        if ()
-        return getFullContentType(url.substring(from, to));
+//        return getFullContentType(url.substring(from, to));
+        return getFullContentType(ct);
     }
     private String getFullContentType(String end) {
         String contentType = null;
