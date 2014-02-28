@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -94,13 +95,14 @@ public class MyClientSession implements Runnable {
         int from = header.indexOf(" ")+1;
         int to = header.indexOf("HTTP/1.", from)-1;
         String url = header.substring(from, to);
+
+        url = myUrlDecoder(url);
         System.out.println("url = "+ url);
         System.out.println("char = " + url.charAt(url.length() - 1));
         if (url.indexOf('?') != -1) {
             url = url.substring(0,url.indexOf('?'));
         }
         while (url.indexOf("%20") != -1) {
-//            url = url.substring(url.indexOf("%20"), url.indexOf())
             url = url.replace("%20"," ");
         }
         boolean checked = false;
@@ -115,17 +117,25 @@ public class MyClientSession implements Runnable {
         } else {
             from = url.length()-1;
             int i  = from;
-            boolean poinIsFound = false;
-            while (i>=0 && !poinIsFound) {
+            boolean pointIsFound = false;
+            while (i>=0 && !pointIsFound) {
                 if (url.charAt(i) == '.'){
-                    poinIsFound = true;
+                    pointIsFound = true;
                 }
                 i--;
             }
-            if (!poinIsFound)
+            if (!pointIsFound)
                 url = url+"/index.html";
         }
         System.out.println("FIle url"+url);
+        return url;
+    }
+    public String myUrlDecoder(String url) {
+        try {
+            url = URLDecoder.decode(url, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         return url;
     }
     private int getStatus(String url) {
