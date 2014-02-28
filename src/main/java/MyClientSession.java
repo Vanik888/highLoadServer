@@ -51,7 +51,6 @@ public class MyClientSession implements Runnable {
                     while((count = inputStream.read(bytes)) != -1) {
                         os.write(bytes);
                     }
-
                 } else if (method.equals("GET") && status == 404) {
 
                 }
@@ -92,26 +91,11 @@ public class MyClientSession implements Runnable {
     }
     private String findFilePath(String header) {
 
-        int from = header.indexOf(" ")+1;
-        int to = header.indexOf("HTTP/1.", from)-1;
-        String url = header.substring(from, to);
-
+        String url = getUrl(header);
         url = myUrlDecoder(url);
-        System.out.println("url = "+ url);
-        System.out.println("char = " + url.charAt(url.length() - 1));
-        if (url.indexOf('?') != -1) {
-            url = url.substring(0,url.indexOf('?'));
-        }
-        while (url.indexOf("%20") != -1) {
-            url = url.replace("%20"," ");
-        }
-        boolean checked = false;
-        while (!checked) {
-            if((from = url.indexOf("../") )!=-1) {
-                url = url.substring(0,from)+url.substring(from+3,url.length());
-            } else checked = true;
-        }
-
+        url = removeQuery(url);
+        url = removeDepricatedSymbols(url);
+        int from;
         if (url.charAt(url.length()-1) == '/') {
             url=url+"index.html";
         } else {
@@ -130,13 +114,34 @@ public class MyClientSession implements Runnable {
         System.out.println("FIle url"+url);
         return url;
     }
-    public String myUrlDecoder(String url) {
+    private String removeQuery(String url) {
+        if (url.indexOf('?') != -1) {
+            url = url.substring(0,url.indexOf('?'));
+        }
+        return url;
+    }
+    private String myUrlDecoder(String url) {
         try {
             url = URLDecoder.decode(url, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return url;
+    }
+    private String removeDepricatedSymbols(String url) {
+        boolean checked = false;
+        int from;
+        while (!checked) {
+            if((from = url.indexOf("../") )!=-1) {
+                url = url.substring(0,from)+url.substring(from+3,url.length());
+            } else checked = true;
+        }
+        return url;
+    }
+    private String getUrl(String header) {
+        int from = header.indexOf(" ")+1;
+        int to = header.indexOf("HTTP/1.", from)-1;
+        return header.substring(from, to);
     }
     private int getStatus(String url) {
         InputStream inputStream = MyClientSession.class.getResourceAsStream(url);
