@@ -31,8 +31,8 @@ public class MyClientSession implements Runnable {
                 buffer.append("HTTP/1.1 405 Method Not Allowed\n");
                 buffer.append("Server: JavaServer\n");
                 buffer.append("Date: " + new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss").format(new Date())+"\n");
-                buffer.append("Connection: close\n");
-                buffer.append("\n");
+                buffer.append("Connection: close\r\n");
+                buffer.append("\r\n");
                 PrintStream answer = new PrintStream(os, true, "utf-8");
                 answer.print(buffer.toString());
             } else {
@@ -147,15 +147,7 @@ public class MyClientSession implements Runnable {
         InputStream inputStream = MyClientSession.class.getResourceAsStream(url);
         return inputStream != null ? 200 : 404;
     }
-    private String getStatusName(int status) {
-        if(status == 200)
-            return "OK";
-        else
-            if (status == 400)
-                return  "Not Found";
-            else
-                return "Internal Server Error";
-    }
+
     private String creatingHeader(int status, long contentLength, String contentType) {
         StringBuffer buffer = new StringBuffer();
         buffer.append("HTTP/1.1 " + status + "\n");
