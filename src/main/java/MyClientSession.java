@@ -37,12 +37,35 @@ public class MyClientSession implements Runnable {
                 answer.print(buffer.toString());
             } else {
                 String url = findFilePath(header);
-                int status = getStatus(DEFAULT_PATH + url);
+                int status;
+                if (url.charAt(url.length()-1) == '/') {
+                    url=url+"index.html";
+                    if (fileExists(url)) {
+                        status = 200;
+                    } else status = 403;
+                } else  {
+                    int from;
+                    from = url.length()-1;
+                    int i  = from;
+                    boolean pointIsFound = false;
+                    while (i>=0 && !pointIsFound) {
+                        if (url.charAt(i) == '.'){
+                            pointIsFound = true;
+                        }
+                        i--;
+                   }
+                    if (!pointIsFound) {
+                        url = url+"/index.html";
+                        if (fileExists(url)) {
+                            status = 200;
+                        } else status = 403;
+                    } else status = getStatus(DEFAULT_PATH + url);
+                }
                 long contentLength = getContentLength(url);
                 String contentType = getContentType(url);
                 String responseHeader = creatingHeader(status, contentLength, contentType);
                 PrintStream answer = new PrintStream(os, true, "utf-8");
-                System.out.print("Created Response \n" + responseHeader);
+                System.out.print("Created Response \r\n" + responseHeader);
                 answer.print(responseHeader);
                 if(method.equals("GET") && status == 200) {
                     InputStream inputStream = MyClientSession.class.getResourceAsStream(DEFAULT_PATH+url);
@@ -54,9 +77,9 @@ public class MyClientSession implements Runnable {
                 } else if (method.equals("GET") && status == 404) {
 
                 }
-                if(method == "HEAD") {
-
-                }
+//                if(method == "HEAD") {
+//
+//                }
 
             }
             System.out.print("header = " + header+ "\n\n");
@@ -83,7 +106,6 @@ public class MyClientSession implements Runnable {
         String ln = null;
         ln = reader.readLine();
         while (ln != null && ln.length() != 0) {
-            System.out.println("ln = " + ln);
             builder.append(ln+ "\n");
             ln = reader.readLine();
         }
@@ -95,22 +117,22 @@ public class MyClientSession implements Runnable {
         url = myUrlDecoder(url);
         url = removeQuery(url);
         url = removeDepricatedSymbols(url);
-        int from;
-        if (url.charAt(url.length()-1) == '/') {
-            url=url+"index.html";
-        } else {
-            from = url.length()-1;
-            int i  = from;
-            boolean pointIsFound = false;
-            while (i>=0 && !pointIsFound) {
-                if (url.charAt(i) == '.'){
-                    pointIsFound = true;
-                }
-                i--;
-            }
-            if (!pointIsFound)
-                url = url+"/index.html";
-        }
+//        int from;
+//        if (url.charAt(url.length()-1) == '/') {
+//            url=url+"index.html";
+//        } else {
+//            from = url.length()-1;
+//            int i  = from;
+//            boolean pointIsFound = false;
+//            while (i>=0 && !pointIsFound) {
+//                if (url.charAt(i) == '.'){
+//                    pointIsFound = true;
+//                }
+//                i--;
+//            }
+//            if (!pointIsFound)
+//                url = url+"/index.html";
+//        }
         System.out.println("FIle url"+url);
         return url;
     }
@@ -143,6 +165,10 @@ public class MyClientSession implements Runnable {
         int to = header.indexOf("HTTP/1.", from)-1;
         return header.substring(from, to);
     }
+    private boolean fileExists(String url) {
+        InputStream inputStream = MyClientSession.class.getResourceAsStream(DEFAULT_PATH+url);
+        return inputStream != null ? true : false;
+    }
     private int getStatus(String url) {
         InputStream inputStream = MyClientSession.class.getResourceAsStream(url);
         return inputStream != null ? 200 : 404;
@@ -150,15 +176,25 @@ public class MyClientSession implements Runnable {
 
     private String creatingHeader(int status, long contentLength, String contentType) {
         StringBuffer buffer = new StringBuffer();
-        buffer.append("HTTP/1.1 " + status + "\n");
-        buffer.append("Server: JavaServer\n");
-        buffer.append("Date: " + new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss").format(new Date())+"\n");
-        buffer.append("Content-Length: " + contentLength +"\n");
-        buffer.append("Content-Type: " + contentType +"\n");
-        buffer.append("Connection: close\n");
-        buffer.append("\n");
+//        buffer.append("HTTP/1.0 " + status + getStatusDescription(status) +"\n");
+        buffer.append("HTTP/1.0 " + status + getStatusDescription(status)+"\r\n");
+        buffer.append("Server: JavaServer\r\n");
+        buffer.append("Date: " + new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss").format(new Date())+"\r\n");
+        buffer.append("Content-Length: " + contentLength +"\r\n");
+        buffer.append("Content-Type: " + contentType +"\r\n");
+        buffer.append("Connection: close\r\n");
+        buffer.append("\r\n");
 
         return buffer.toString();
+    }
+    private String getStatusDescription(int status) {
+        if (status ==  200 )
+            return " OK";
+        if (status == 404)
+            return " Not Found";
+        if (status == 403)
+            return " Forbidden";
+        else return " ";
     }
     private String getContentType(String url) {
         int len = url.length()-1;
