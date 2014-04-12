@@ -31,7 +31,5 @@ public class HttpServer {
                 System.exit(-1);
             }
         }
-
-//        while (true) { try { Socket clientSocket = serverSocket.accept(); /* Для обработки запроса от каждого клиента создается * отдельный объект и отдельный поток */ MyClientSession session = new MyClientSession(clientSocket); new Thread(session).start(); } catch (IOException e) { System.out.println("Failed to establish connection."); System.out.println(e.getMessage()); System.exit(-1); } }
     }
 }

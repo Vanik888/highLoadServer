@@ -3,6 +3,8 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by vanik on 23.02.14.
@@ -31,8 +33,7 @@ public class MyClientSession implements Runnable {
                 buffer.append("HTTP/1.1 405 Method Not Allowed\n");
                 buffer.append("Server: JavaServer\n");
                 buffer.append("Date: " + new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss").format(new Date())+"\n");
-                buffer.append("Connection: close\r\n");
-                buffer.append("\r\n");
+                buffer.append("Connection: close\r\n\r\n");
                 PrintStream answer = new PrintStream(os, true, "utf-8");
                 answer.print(buffer.toString());
             } else {
@@ -60,6 +61,12 @@ public class MyClientSession implements Runnable {
                             status = 200;
                         } else status = 403;
                     } else status = getStatus(DEFAULT_PATH + url);
+                    if (status == 403 && (url.indexOf("/index.html") !=-1) ) {
+                        url = url.substring(0,url.indexOf("/index.html"));
+                        if (fileExists(url)) {
+                            status = 200;
+                        }
+                    }
                 }
                 long contentLength = getContentLength(url);
                 String contentType = getContentType(url);
@@ -74,12 +81,7 @@ public class MyClientSession implements Runnable {
                     while((count = inputStream.read(bytes)) != -1) {
                         os.write(bytes);
                     }
-                } else if (method.equals("GET") && status == 404) {
-
                 }
-//                if(method == "HEAD") {
-//
-//                }
 
             }
             System.out.print("header = " + header+ "\n\n");
@@ -117,22 +119,6 @@ public class MyClientSession implements Runnable {
         url = myUrlDecoder(url);
         url = removeQuery(url);
         url = removeDepricatedSymbols(url);
-//        int from;
-//        if (url.charAt(url.length()-1) == '/') {
-//            url=url+"index.html";
-//        } else {
-//            from = url.length()-1;
-//            int i  = from;
-//            boolean pointIsFound = false;
-//            while (i>=0 && !pointIsFound) {
-//                if (url.charAt(i) == '.'){
-//                    pointIsFound = true;
-//                }
-//                i--;
-//            }
-//            if (!pointIsFound)
-//                url = url+"/index.html";
-//        }
         System.out.println("FIle url"+url);
         return url;
     }
@@ -176,15 +162,15 @@ public class MyClientSession implements Runnable {
 
     private String creatingHeader(int status, long contentLength, String contentType) {
         StringBuffer buffer = new StringBuffer();
-//        buffer.append("HTTP/1.0 " + status + getStatusDescription(status) +"\n");
         buffer.append("HTTP/1.0 " + status + getStatusDescription(status)+"\r\n");
         buffer.append("Server: JavaServer\r\n");
-        buffer.append("Date: " + new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss").format(new Date())+"\r\n");
+//        SimpleDateFormat dateFormat = new .setTimeZone(TimeZone.getTimeZone("GMT"));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        buffer.append("Date: " + dateFormat.format(new Date())+"\r\n");
         buffer.append("Content-Length: " + contentLength +"\r\n");
         buffer.append("Content-Type: " + contentType +"\r\n");
-        buffer.append("Connection: close\r\n");
-        buffer.append("\r\n");
-
+        buffer.append("Connection: close\r\n\r\n");
         return buffer.toString();
     }
     private String getStatusDescription(int status) {
@@ -207,6 +193,9 @@ public class MyClientSession implements Runnable {
                 ct = url.substring(i+1,len+1);
             }
             i--;
+        }
+        if(!ctFinded) {
+            ct = "bin file";
         }
         System.out.println("url contentType = " + ct);
         return getFullContentType(ct);
@@ -236,6 +225,8 @@ public class MyClientSession implements Runnable {
         } else
         if(end.equals("swf")){
             contentType = "application/x-shockwave-flash";
+        } else {
+            contentType = end;
         }
         return contentType;
     }
