@@ -21,11 +21,11 @@ public class MyClientSession implements Runnable {
             this.os = socket.getOutputStream();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("can not get i/o stream");
         }
     }
     public void run() {
         try {
+            System.out.println("query to server at " + HttpServer.CURRENT_PORT + " port");
             String header = readHeader();
             String method = readMethod(header);
             if(!method.equals("GET") && !method.equals("HEAD")) {
@@ -72,7 +72,6 @@ public class MyClientSession implements Runnable {
                 String contentType = getContentType(url);
                 String responseHeader = creatingHeader(status, contentLength, contentType);
                 PrintStream answer = new PrintStream(os, true, "utf-8");
-                System.out.print("Created Response \r\n" + responseHeader);
                 answer.print(responseHeader);
                 if(method.equals("GET") && status == 200) {
                     InputStream inputStream = MyClientSession.class.getResourceAsStream(DEFAULT_PATH+url);
@@ -84,14 +83,12 @@ public class MyClientSession implements Runnable {
                 }
 
             }
-            System.out.print("header = " + header+ "\n\n");
         } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
     }
@@ -119,7 +116,6 @@ public class MyClientSession implements Runnable {
         url = myUrlDecoder(url);
         url = removeQuery(url);
         url = removeDepricatedSymbols(url);
-        System.out.println("FIle url"+url);
         return url;
     }
     private String removeQuery(String url) {
@@ -168,7 +164,7 @@ public class MyClientSession implements Runnable {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         buffer.append("Date: " + dateFormat.format(new Date())+"\r\n");
-        buffer.append("Content-Length: " + contentLength +"\r\n");
+//        buffer.append("Content-Length: " + contentLength +"\r\n");
         buffer.append("Content-Type: " + contentType +"\r\n");
         buffer.append("Connection: close\r\n\r\n");
         return buffer.toString();
@@ -197,7 +193,6 @@ public class MyClientSession implements Runnable {
         if(!ctFinded) {
             ct = "bin file";
         }
-        System.out.println("url contentType = " + ct);
         return getFullContentType(ct);
     }
     private String getFullContentType(String end) {
@@ -232,7 +227,6 @@ public class MyClientSession implements Runnable {
     }
     private long getContentLength(String url) {
         String filePath = "./src/main/resources/"+DEFAULT_PATH+url;
-        System.out.println(filePath);
         File requstedFile = new File(filePath);
         return requstedFile.length();
     }

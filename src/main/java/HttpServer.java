@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 public class HttpServer {
     public static final int DEFAULT_PORT = 8080;
+    public static int CURRENT_PORT = DEFAULT_PORT;
     private static final String DEFAULT_PATH = "DOCUMENT_ROOT";
     public String getDefaultPath() {
         return DEFAULT_PATH;
@@ -11,6 +12,7 @@ public class HttpServer {
         int port = DEFAULT_PORT;
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
+            CURRENT_PORT = port;
         }
         ServerSocket serverSocket = null;
         try {
